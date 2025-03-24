@@ -80,7 +80,11 @@ export default function App() {
   */
 
   function handleSelectMovie(id) {
-    setSelectedId(id)
+    setSelectedId(selectedId => id === selectedId ? null : id);
+  }
+
+  function handleCloseMovie() {
+    setSelectedId(null);
   }
 
   useEffect(function () {
@@ -130,31 +134,31 @@ export default function App() {
       <NavBar>
         <Search query={query} setQuery={setQuery} />
         <NumResults movies={movies} />
-      </NavBar> 
+      </NavBar>
       <Main>
-        {/* <Box element={<MovieList movies={movies} />} />
-        <Box
-          element={
+        <Box>
+          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
+          {isLoading && <Loader />}
+          {!isLoading && !error && (
+            <MovieList
+              movies={movies}
+              onSelectMovie={handleSelectMovie}
+            />
+          )}
+          {error && <ErrorMessage message={error} />}
+        </Box>
+        <Box>
+          {selectedId ? (
+            <MovieDetails
+              selectedId={selectedId}
+              onCloseMovie={handleCloseMovie}
+            />
+          ) : (
             <>
               <WatchedSummary watched={watched} />
               <WatchedMoviesList watched={watched} />
             </>
-          }
-        /> */}
-        <Box>
-          {/* {isLoading ? <Loader /> : <MovieList movies={movies} />} */}
-          {isLoading && <Loader />}
-          {!isLoading && !error && <MovieList movies={movies} onSelectMovie={handleSelectMovie} />}
-          {error && <ErrorMessage message={error} />}
-        </Box>
-        <Box>
-          {
-          selectedId ? <MovieDetails selectedId={selectedId} /> :  
-          <>
-            <WatchedSummary watched={watched} />
-            <WatchedMoviesList watched={watched} />
-          </>
-          }
+          )}
         </Box>
       </Main>
       <NumResults movies={movies} />
@@ -267,7 +271,7 @@ function Box({ children }) {
 function MovieList({ movies, onSelectMovie }) {
 
   return (
-    <ul className="list">
+    <ul className="list list-movies">
       {movies?.map((movie) => (
         <Movie movie={movie} key={movie.imdbID} onSelectMovie={onSelectMovie} />
       ))}
@@ -293,9 +297,42 @@ function Movie({ movie, onSelectMovie }) {
   );
 }
 
-function MovieDetails({ selectedId }) {
+function MovieDetails({ selectedId, onCloseMovie }) {
+  const [movie, setMovie] = useState({});
+
+  const {
+    Title: title,
+    Year: year,
+    Poster: poster,
+    Runtime: runtime,
+    imdbRating,
+    Plot: plot,
+    Released: released,
+    Actors: actors,
+    Director: director,
+    Genre: genre,
+  } = movie;
+
+  console.log(title, year);
+
+  useEffect(function () {
+    async function getMovieDetails() {
+      const res = await fetch(
+        `http://www.omdbapi.com/?apikey=${KEY}&i=${selectedId}`
+      );
+      const data = await res.json();
+      setMovie(data);
+    }
+    getMovieDetails();
+  }, []);
+
   return (
-    <div className="details">{selectedId}</div>
+    <div className="details">
+      <header>
+        <button className="btn-back" onClick={onCloseMovie}>⬅️</button>
+        {selectedId}
+      </header>
+    </div>
   );
 }
 
