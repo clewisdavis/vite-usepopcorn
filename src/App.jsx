@@ -124,7 +124,7 @@ export default function App() {
         setMovies(data.Search);
         setError('');
       } catch (err) {
-        console.error(err.message);
+        // console.error(err.message);
 
         if (err.name !== 'AbortError') {
           setError(err.message);
@@ -141,11 +141,12 @@ export default function App() {
       return;
     }
 
+    handleCloseMovie();
     fetchMovies();
 
     return function () {
       controller.abort();
-      console.log('Clean up function called');
+      // console.log('Clean up function called');
     }
   }, [query]);
 
@@ -326,7 +327,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
   const [userRating, setUserRating] = useState(' ');
 
   const isWatched = watched.map((movie) => movie.imdbID).includes(selectedId);
-  console.log(isWatched);
+  // console.log(isWatched);
   const watchedUserRating = watched.find(movie => movie.imdbID === selectedId)?.userRating;
 
   const {
@@ -342,7 +343,24 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     Genre: genre,
   } = movie;
 
-  console.log(title, year);
+    useEffect(
+      function () {
+
+        function callback (e) {
+          if (e.code === 'Escape') {
+            onCloseMovie();
+            // console.log('CLOSING MOVIE');
+          }
+        }
+
+        document.addEventListener('keydown', callback);
+
+        return function() {
+          document.removeEventListener('keydown', callback)
+        }
+      },
+      [onCloseMovie]
+    );
 
   useEffect(function () {
     async function getMovieDetails() {
@@ -379,7 +397,7 @@ function MovieDetails({ selectedId, onCloseMovie, onAddWatched, watched }) {
     // clean up function to reset the title
     return function() {
       document.title = 'usePopcorn';
-      console.log(`Clean up effect for ${title}`);
+      // console.log(`Clean up effect for ${title}`);
     };
   }, [title]
 );
